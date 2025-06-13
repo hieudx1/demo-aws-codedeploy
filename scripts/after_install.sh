@@ -2,11 +2,11 @@
 # Script chạy sau khi cài đặt
 
 # Đặt quyền cho các tệp
-chmod -R 755 /var/www/html
+sudo chmod -R 755 /usr/share/nginx/html
 
-# Khởi động lại dịch vụ Apache
-systemctl start apache2
-systemctl enable apache2
+# Khởi động lại dịch vụ Nginx
+sudo systemctl start nginx || sudo service nginx start
+sudo systemctl enable nginx || sudo chkconfig nginx on
 
 # Ghi log thành công
-echo "Triển khai thành công vào $(date)" >> /var/log/deployment.log
+echo "Triển khai thành công vào $(date)" | sudo tee -a /var/log/deployment.log

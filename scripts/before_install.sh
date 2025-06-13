@@ -2,21 +2,27 @@
 # Script chạy trước khi cài đặt
 
 # Cài đặt các gói cần thiết nếu chưa có
-if ! [ -x "$(command -v apache2)" ]; then
-  echo 'Đang cài đặt Apache...'
-  apt-get update
-  apt-get install -y apache2
+if ! [ -x "$(command -v nginx)" ]; then
+  echo 'Đang cài đặt Nginx...'
+  if [ -f /etc/redhat-release ]; then
+    # CentOS/RHEL/Amazon Linux
+    sudo amazon-linux-extras install nginx1 -y || sudo yum install -y nginx
+  elif [ -f /etc/debian_version ]; then
+    # Ubuntu/Debian
+    sudo apt-get update
+    sudo apt-get install -y nginx
+  fi
 fi
 
-# Dừng dịch vụ Apache để chuẩn bị cập nhật
-systemctl stop apache2
+# Dừng dịch vụ Nginx để chuẩn bị cập nhật
+sudo systemctl stop nginx || sudo service nginx stop
 
 # Tạo thư mục nếu chưa tồn tại
-if [ ! -d /var/www/html ]; then
-  mkdir -p /var/www/html
+if [ ! -d /usr/share/nginx/html ]; then
+  sudo mkdir -p /usr/share/nginx/html
 fi
 
 # Sao lưu phiên bản cũ nếu có
-if [ -f /var/www/html/index.html ]; then
-  mv /var/www/html/index.html /var/www/html/index.html.bak
+if [ -f /usr/share/nginx/html/index.html ]; then
+  sudo mv /usr/share/nginx/html/index.html /usr/share/nginx/html/index.html.bak
 fi
