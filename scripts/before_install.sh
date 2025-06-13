@@ -1,26 +1,18 @@
 #!/bin/bash
 # Script chạy trước khi cài đặt
 
-# Cài đặt các gói cần thiết nếu chưa có
+# Cài đặt nginx cho Amazon Linux 2
 if ! [ -x "$(command -v nginx)" ]; then
   echo 'Đang cài đặt Nginx...'
-  if [ -f /etc/redhat-release ]; then
-    # CentOS/RHEL/Amazon Linux
-    sudo amazon-linux-extras install nginx1 -y || sudo yum install -y nginx
-  elif [ -f /etc/debian_version ]; then
-    # Ubuntu/Debian
-    sudo apt-get update
-    sudo apt-get install -y nginx
-  fi
+  sudo yum update -y
+  sudo yum install -y nginx
 fi
 
 # Dừng dịch vụ Nginx để chuẩn bị cập nhật
-sudo systemctl stop nginx || sudo service nginx stop
+sudo systemctl stop nginx 2>/dev/null || true
 
 # Tạo thư mục nếu chưa tồn tại
-if [ ! -d /usr/share/nginx/html ]; then
-  sudo mkdir -p /usr/share/nginx/html
-fi
+sudo mkdir -p /usr/share/nginx/html
 
 # Sao lưu phiên bản cũ nếu có
 if [ -f /usr/share/nginx/html/index.html ]; then
