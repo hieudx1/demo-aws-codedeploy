@@ -1,22 +1,42 @@
 #!/bin/bash
-# Script chạy sau khi cài đặt
+set -e
 
-# Đặt quyền cho các tệp
+echo "=== After Install Script Started ==="
+
+# Set permissions
+echo "Setting permissions..."
 sudo chmod -R 755 /usr/share/nginx/html
 sudo chown -R nginx:nginx /usr/share/nginx/html
 
-# Enable và khởi động nginx
-sudo systemctl enable nginx
-sudo systemctl start nginx
-
-# Kiểm tra trạng thái nginx
-if sudo systemctl is-active --quiet nginx; then
-    echo "Nginx đã khởi động thành công"
-else
-    echo "Lỗi: Nginx không thể khởi động"
-    sudo systemctl status nginx
+# Verify port 80 is free before starting
+echo "Checking port 80 availability..."
+if sudo netstat -tlnp | grep :80; then
+    echo "ERROR: Port 80 is still occupied"
+    sudo netstat -tlnp | grep :80
     exit 1
 fi
 
-# Ghi log thành công
-echo "Triển khai thành công vào $(date)" | sudo tee -a /var/log/deployment.log
+# Enable nginx
+sudo systemctl enable nginx
+
+# Start nginx
+echo "Starting nginx..."
+sudo systemctl start nginx
+
+# Wait and check
+sleep 3
+
+if sudo systemctl is-active --quiet nginx; then
+    echo "SUCCESS: Nginx is running"
+    echo "Port 80 status:"
+    sudo netstat -tlnp | grep :80
+    curl -I localhost || echo "Warning: Could not test localhost"
+else
+    echo "ERROR: Nginx failed to start"
+    sudo systemctl status nginx
+    sudo journalctl -xeu nginx.service --no-pager
+    exit 1
+fi
+
+echo "Deployment completed at $(date)" | sudo tee -a /var/log/deployment.log
+echo "=== After Install Script Completed ==="
